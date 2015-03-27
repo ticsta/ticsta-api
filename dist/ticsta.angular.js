@@ -1,12 +1,7 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-module.exports = {
-  user: require('./user.js')
-};
-
-},{"./user.js":2}],2:[function(require,module,exports){
 module.exports = function(api, ticsta, credentials) {
 
-  var user = api.endpoint('users', {
+  var user = api.endpoint('accounts', {
     credentials: credentials,
 
     id: function(id) {
@@ -17,8 +12,9 @@ module.exports = function(api, ticsta, credentials) {
       var self = this;
 
       if (this.credentials.token) {
-        if (callback)
+        if (callback) {
           return callback(null, this.credentials.token);
+        }
         return this.credentials.token;
       }
 
@@ -32,7 +28,8 @@ module.exports = function(api, ticsta, credentials) {
           return callback(err);
         }
 
-        self.credentials.token = body.access_token || body.token;
+        self.credentials.token = body.access_token || body.token || self.credentials.token;
+        ticsta.setToken(self.credentials.token);
         if (callback) {
           callback(err, self.credentials.token);
         }
@@ -49,18 +46,98 @@ module.exports = function(api, ticsta, credentials) {
     },
 
     me: function(callback) {
-      return this.http.request(this.options.host + '/users/me', 'GET', callback);
+      return this.http.request(this.url() + '/me', 'GET', callback);
     },
 
     regenerateKey: function(callback) {
-      return this.http.request(this.options.host + '/users/me/key', 'PUT', callback);
+      return this.http.request(this.url() + '/me/key', 'PUT', callback);
     }
   });
 
   return user;
 };
 
-},{}],3:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
+module.exports = {
+  account: require('./account.js'),
+  websites: require('./websites.js')
+};
+
+},{"./account.js":1,"./websites.js":3}],3:[function(require,module,exports){
+module.exports = function(api, ticsta) {
+  //var user = require('./user')(api);
+
+  var websites = api.endpoint('websites', {
+
+    // GET /websites/my
+    my: function(callback) {
+      return this.http.request(this.url() + '/my', 'GET', callback);
+    },
+
+    // GET /websites/:id
+    id: function(id) {
+      var website = this.one(id);
+
+      // DELETE /websites/:id
+      website.remove = function(callback) {
+        return this.http.request(this.url(), 'DELETE', callback);
+      };
+
+      // GET /websites/:id/node
+      website.node = function(callback) {
+        return this.http.request(this.url() + '/node', 'GET', callback);
+      };
+
+      // DOMAINS
+      website.domains = website.endpoint('domains', {
+
+        // PUT /websites/:id/domains/:domain
+        update: function(domain, data, callback) {
+          return this.http.request(this.url() + '/' + domain, 'PUT', {
+            form: data
+          }, callback);
+        },
+        // DELETE /websites/:id/domains/:domain
+        remove: function(domain, callback) {
+          return this.http.request(this.url() + '/' + domain, 'DELETE', callback);
+        }
+      });
+
+      // DOMAINS
+      website.members = website.endpoint('members', {
+
+        // GET /websites/:id/members/me
+        me: function(callback) {
+          return this.http.request(this.url() + '/me', 'GET', callback);
+        },
+
+        // POST /websites/:id/members/invite
+        invite: function(data, callback) {
+          return this.http.request(this.url() + '/invite', 'POST', {
+            form: data
+          }, callback);
+        },
+
+        // PUT /websites/:id/members/:member
+        update: function(member, data, callback) {
+          return this.http.request(this.url() + '/' + member, 'PUT', {
+            form: data
+          }, callback);
+        },
+        // DELETE /websites/:id/members/:domain
+        remove: function(member, callback) {
+          return this.http.request(this.url() + '/' + member, 'DELETE', callback);
+        }
+      });
+
+      return website;
+    }
+  });
+
+  return websites;
+};
+
+},{}],4:[function(require,module,exports){
 angular.module('ticsta', [])
   .provider('ticsta', function () {
     var Ticsta = require('../ticsta');
@@ -78,7 +155,7 @@ angular.module('ticsta', [])
       $get: function ($rootScope, $q, $http) {
         $rootScope.narratorApply = function(fn) {
           var phase = this.$root.$$phase;
-          if(phase == '$apply' || phase == '$digest') {
+          if(phase === '$apply' || phase === '$digest') {
             if(fn && (typeof(fn) === 'function')) {
               fn();
             }
@@ -93,7 +170,7 @@ angular.module('ticsta', [])
       }
     };
   });
-},{"../ticsta":5,"narrator":17,"narrator/lib/browser/asHttp":11,"narrator/lib/browser/asQ":12}],4:[function(require,module,exports){
+},{"../ticsta":6,"narrator":18,"narrator/lib/browser/asHttp":12,"narrator/lib/browser/asQ":13}],5:[function(require,module,exports){
 module.exports = function(options, defaults) {
   options = options || {};
 
@@ -105,7 +182,7 @@ module.exports = function(options, defaults) {
 
   return options;
 };
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 (function (process){
 var Narrator = require('narrator');
 var Emitter = require('tiny-emitter');
@@ -130,7 +207,7 @@ var Ticsta = function (options) {
   
   if (process.env.TICSTA_API_VERSION || options.version || TICSTA_API_VERSION) {
     var version = process.env.TICSTA_API_VERSION || options.version || TICSTA_API_VERSION;
-    apiOptions.headers['Accept-Version'] = version
+    apiOptions.headers['Accept-Version'] = version;
   }
 
   if (options.token) {
@@ -139,7 +216,8 @@ var Ticsta = function (options) {
   
   this._api = new Narrator(apiOptions);
 
-  this.user = api.user(this._api, this, options);
+  this.account = api.account(this._api, this, options);
+  this.websites = api.websites(this._api, this);
   
   // Forward Narrator events
   reemitter(this._api, this.events, ['response', 'response:success', 'response:error']);
@@ -160,7 +238,7 @@ Ticsta.prototype.setKey = function (key) {
 
 module.exports = Ticsta;
 }).call(this,require('_process'))
-},{"./api":1,"./helpers/defaults":4,"_process":10,"amp-extend":6,"narrator":17,"re-emitter":20,"tiny-emitter":21}],6:[function(require,module,exports){
+},{"./api":2,"./helpers/defaults":5,"_process":11,"amp-extend":7,"narrator":18,"re-emitter":21,"tiny-emitter":22}],7:[function(require,module,exports){
 var isObject = require('amp-is-object');
 
 
@@ -176,15 +254,15 @@ module.exports = function(obj) {
     return obj;
 };
 
-},{"amp-is-object":7}],7:[function(require,module,exports){
+},{"amp-is-object":8}],8:[function(require,module,exports){
 module.exports = function isObject(obj) {
     var type = typeof obj;
     return !!obj && (type === 'function' || type === 'object');
 };
 
-},{}],8:[function(require,module,exports){
-
 },{}],9:[function(require,module,exports){
+
+},{}],10:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -487,7 +565,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -547,7 +625,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 module.exports = function (Http, $http) {
   Http.prototype._request = function (options, callback) {
     options.data = options.data || options.form;
@@ -564,7 +642,7 @@ module.exports = function (Http, $http) {
       });
   };
 };
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 module.exports = function (Http, $rootScope, $q) {
   Http.prototype._promiseWrap = function (callback) {
     var d = $q.defer();
@@ -582,7 +660,7 @@ module.exports = function (Http, $rootScope, $q) {
     return d.promise;
   };
 };
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var defaults = require('./helpers/defaults');
 var extend = require('extend');
 var urljoin = require('url-join');
@@ -675,7 +753,7 @@ Endpoint.prototype.getEndpoint = function (path, id) {
   return this.options._endpoints[pathKey];
 };
 
-},{"./entity":14,"./helpers/defaults":15,"./http":16,"extend":18,"url-join":19}],14:[function(require,module,exports){
+},{"./entity":15,"./helpers/defaults":16,"./http":17,"extend":19,"url-join":20}],15:[function(require,module,exports){
 var Http = require('./http');
 var urljoin = require('url-join');
 var defaults = require('./helpers/defaults');
@@ -758,9 +836,9 @@ Entity.prototype.getEndpoint = function (path, id) {
   return this.options._endpoints[pathKey];
 };
 
-},{"./helpers/defaults":15,"./http":16,"./narrator":17,"extend":18,"url-join":19}],15:[function(require,module,exports){
-arguments[4][4][0].apply(exports,arguments)
-},{"dup":4}],16:[function(require,module,exports){
+},{"./helpers/defaults":16,"./http":17,"./narrator":18,"extend":19,"url-join":20}],16:[function(require,module,exports){
+arguments[4][5][0].apply(exports,arguments)
+},{"dup":5}],17:[function(require,module,exports){
 (function (process){
 var extend = require('extend');
 var defaults = require('./helpers/defaults');
@@ -900,7 +978,7 @@ Http.prototype.request = function (path, method, options, callback) {
   });
 };
 }).call(this,require('_process'))
-},{"./helpers/defaults":15,"_process":10,"extend":18,"promise":8,"request":8}],17:[function(require,module,exports){
+},{"./helpers/defaults":16,"_process":11,"extend":19,"promise":9,"request":9}],18:[function(require,module,exports){
 var extend = require('extend');
 var urljoin = require('url-join');
 var Promise = require('promise');
@@ -956,7 +1034,7 @@ Narrator.prototype.xhr = function (key, value) {
   this._xhr[key] = value;
   return this;
 };
-},{"./endpoint":13,"./http":16,"extend":18,"promise":8,"tiny-emitter":21,"url-join":19}],18:[function(require,module,exports){
+},{"./endpoint":14,"./http":17,"extend":19,"promise":9,"tiny-emitter":22,"url-join":20}],19:[function(require,module,exports){
 var hasOwn = Object.prototype.hasOwnProperty;
 var toString = Object.prototype.toString;
 var undefined;
@@ -1039,7 +1117,7 @@ module.exports = function extend() {
 };
 
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 function normalize (str) {
   return str
           .replace(/[\/]+/g, '/')
@@ -1052,7 +1130,7 @@ module.exports = function () {
   var joined = [].slice.call(arguments, 0).join('/');
   return normalize(joined);
 };
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 module.exports = reemit
 module.exports.filter = filter
 
@@ -1076,7 +1154,7 @@ function filter (source, events) {
   return emitter
 }
 
-},{"events":9}],21:[function(require,module,exports){
+},{"events":10}],22:[function(require,module,exports){
 function E () {
 	// Keep this empty so it's easier to inherit from
   // (via https://github.com/lipsmack from https://github.com/scottcorgan/tiny-emitter/issues/3)
@@ -1142,4 +1220,4 @@ E.prototype = {
 
 module.exports = E;
 
-},{}]},{},[3]);
+},{}]},{},[4]);
