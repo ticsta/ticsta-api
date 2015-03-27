@@ -2,7 +2,7 @@
   "name": "ticsta-api",
   "version": "0.0.1",
   "description": "Wrapper for the Ticsta API",
-  "main": "index.js",
+  "main": "lib/ticsta.js",
   "scripts": {
     "build": "grunt build",
     "test": "echo 'PASS' && exit 0"
