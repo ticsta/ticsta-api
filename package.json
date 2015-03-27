@@ -1,0 +1,46 @@
+{
+  "name": "ticsta-api",
+  "version": "0.0.1",
+  "description": "Wrapper for the Ticsta API",
+  "main": "index.js",
+  "scripts": {
+    "build": "grunt build",
+    "test": "echo 'PASS' && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ticsta/ticsta-api.git"
+  },
+  "keywords": [
+    "ticsta",
+    "api"
+  ],
+  "author": "ticsta",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ticsta/ticsta-api/issues"
+  },
+  "homepage": "https://github.com/ticsta/ticsta-api",
+  "devDependencies": {
+    "browserify": "^8.1.1",
+    "chai": "~1.8.0",
+    "grunt": "~0.4.4",
+    "grunt-browserify": "^3.3.0",
+    "grunt-contrib-uglify": "^0.7.0",
+    "grunt-contrib-watch": "~0.5.3",
+    "mocksy": "^1.0.0",
+    "proxyquire": "~0.5.1",
+    "sinon": "~1.7.3"
+  },
+  "dependencies": {
+    "amp-extend": "^1.0.1",
+    "async": "^0.9.0",
+    "btoa": "1.1.x",
+    "form-data": "^0.2.0",
+    "lodash.defaults": "^2.4.1",
+    "narrator": "~1.1.0",
+    "promise": "^6.1.0",
+    "re-emitter": "^1.0.0",
+    "tiny-emitter": "^1.0.0"
+  }
+}
