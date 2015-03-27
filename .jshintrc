@@ -21,6 +21,7 @@
     "beforeEach": true,
     "afterEach": true,
     "chai": true,
-    "Regex": true
+    "Regex": true,
+    "angular": true
   }
 }
