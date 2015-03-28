@@ -60,10 +60,25 @@ module.exports = function(api, ticsta, credentials) {
 },{}],2:[function(require,module,exports){
 module.exports = {
   account: require('./account.js'),
-  websites: require('./websites.js')
+  websites: require('./websites.js'),
+  nodes: require('./nodes.js')
 };
 
-},{"./account.js":1,"./websites.js":3}],3:[function(require,module,exports){
+},{"./account.js":1,"./nodes.js":3,"./websites.js":4}],3:[function(require,module,exports){
+module.exports = function(api, ticsta) {
+
+  var nodes = api.endpoint('nodes', {
+
+    // GET /nodes/active
+    active: function(callback) {
+      return this.http.request(this.url() + '/active', 'GET', callback);
+    }
+  });
+
+  return nodes;
+};
+
+},{}],4:[function(require,module,exports){
 module.exports = function(api, ticsta) {
   //var user = require('./user')(api);
 
@@ -137,11 +152,11 @@ module.exports = function(api, ticsta) {
   return websites;
 };
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 var ticsta = require('../ticsta.js');
 
 module.exports = ticsta;
-},{"../ticsta.js":6}],5:[function(require,module,exports){
+},{"../ticsta.js":7}],6:[function(require,module,exports){
 module.exports = function(options, defaults) {
   options = options || {};
 
@@ -153,7 +168,7 @@ module.exports = function(options, defaults) {
 
   return options;
 };
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 (function (process){
 var Narrator = require('narrator');
 var Emitter = require('tiny-emitter');
@@ -180,15 +195,16 @@ var Ticsta = function (options) {
     var version = process.env.TICSTA_API_VERSION || options.version || TICSTA_API_VERSION;
     apiOptions.headers['Accept-Version'] = version;
   }
+  
+  this._api = new Narrator(apiOptions);
 
   if (options.token) {
     this.setToken(options.token);
   }
-  
-  this._api = new Narrator(apiOptions);
 
   this.account = api.account(this._api, this, options);
   this.websites = api.websites(this._api, this);
+  this.nodes = api.nodes(this._api, this);
   
   // Forward Narrator events
   reemitter(this._api, this.events, ['response', 'response:success', 'response:error']);
@@ -209,7 +225,7 @@ Ticsta.prototype.setKey = function (key) {
 
 module.exports = Ticsta;
 }).call(this,require('_process'))
-},{"./api":2,"./helpers/defaults":5,"_process":10,"amp-extend":7,"narrator":16,"re-emitter":26,"tiny-emitter":27}],7:[function(require,module,exports){
+},{"./api":2,"./helpers/defaults":6,"_process":11,"amp-extend":8,"narrator":17,"re-emitter":27,"tiny-emitter":28}],8:[function(require,module,exports){
 var isObject = require('amp-is-object');
 
 
@@ -225,13 +241,13 @@ module.exports = function(obj) {
     return obj;
 };
 
-},{"amp-is-object":8}],8:[function(require,module,exports){
+},{"amp-is-object":9}],9:[function(require,module,exports){
 module.exports = function isObject(obj) {
     var type = typeof obj;
     return !!obj && (type === 'function' || type === 'object');
 };
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -534,7 +550,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -594,7 +610,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var request = require('reqwest');
 var extend = require('extend');
 
@@ -617,7 +633,7 @@ module.exports = function (options, callback) {
   
   return request(options);
 };
-},{"extend":17,"reqwest":18}],12:[function(require,module,exports){
+},{"extend":18,"reqwest":19}],13:[function(require,module,exports){
 var defaults = require('./helpers/defaults');
 var extend = require('extend');
 var urljoin = require('url-join');
@@ -710,7 +726,7 @@ Endpoint.prototype.getEndpoint = function (path, id) {
   return this.options._endpoints[pathKey];
 };
 
-},{"./entity":13,"./helpers/defaults":14,"./http":15,"extend":17,"url-join":19}],13:[function(require,module,exports){
+},{"./entity":14,"./helpers/defaults":15,"./http":16,"extend":18,"url-join":20}],14:[function(require,module,exports){
 var Http = require('./http');
 var urljoin = require('url-join');
 var defaults = require('./helpers/defaults');
@@ -793,9 +809,9 @@ Entity.prototype.getEndpoint = function (path, id) {
   return this.options._endpoints[pathKey];
 };
 
-},{"./helpers/defaults":14,"./http":15,"./narrator":16,"extend":17,"url-join":19}],14:[function(require,module,exports){
-arguments[4][5][0].apply(exports,arguments)
-},{"dup":5}],15:[function(require,module,exports){
+},{"./helpers/defaults":15,"./http":16,"./narrator":17,"extend":18,"url-join":20}],15:[function(require,module,exports){
+arguments[4][6][0].apply(exports,arguments)
+},{"dup":6}],16:[function(require,module,exports){
 (function (process){
 var extend = require('extend');
 var defaults = require('./helpers/defaults');
@@ -935,7 +951,7 @@ Http.prototype.request = function (path, method, options, callback) {
   });
 };
 }).call(this,require('_process'))
-},{"./helpers/defaults":14,"_process":10,"extend":17,"promise":20,"request":11}],16:[function(require,module,exports){
+},{"./helpers/defaults":15,"_process":11,"extend":18,"promise":21,"request":12}],17:[function(require,module,exports){
 var extend = require('extend');
 var urljoin = require('url-join');
 var Promise = require('promise');
@@ -991,7 +1007,7 @@ Narrator.prototype.xhr = function (key, value) {
   this._xhr[key] = value;
   return this;
 };
-},{"./endpoint":12,"./http":15,"extend":17,"promise":20,"tiny-emitter":27,"url-join":19}],17:[function(require,module,exports){
+},{"./endpoint":13,"./http":16,"extend":18,"promise":21,"tiny-emitter":28,"url-join":20}],18:[function(require,module,exports){
 var hasOwn = Object.prototype.hasOwnProperty;
 var toString = Object.prototype.toString;
 var undefined;
@@ -1074,7 +1090,7 @@ module.exports = function extend() {
 };
 
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 /*!
   * Reqwest! A general purpose XHR connection manager
   * license MIT (c) Dustin Diaz 2014
@@ -1691,7 +1707,7 @@ module.exports = function extend() {
   return reqwest
 });
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 function normalize (str) {
   return str
           .replace(/[\/]+/g, '/')
@@ -1704,14 +1720,14 @@ module.exports = function () {
   var joined = [].slice.call(arguments, 0).join('/');
   return normalize(joined);
 };
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 'use strict';
 
 module.exports = require('./lib/core.js')
 require('./lib/done.js')
 require('./lib/es6-extensions.js')
 require('./lib/node-extensions.js')
-},{"./lib/core.js":21,"./lib/done.js":22,"./lib/es6-extensions.js":23,"./lib/node-extensions.js":24}],21:[function(require,module,exports){
+},{"./lib/core.js":22,"./lib/done.js":23,"./lib/es6-extensions.js":24,"./lib/node-extensions.js":25}],22:[function(require,module,exports){
 'use strict';
 
 var asap = require('asap')
@@ -1818,7 +1834,7 @@ function doResolve(fn, onFulfilled, onRejected) {
   }
 }
 
-},{"asap":25}],22:[function(require,module,exports){
+},{"asap":26}],23:[function(require,module,exports){
 'use strict';
 
 var Promise = require('./core.js')
@@ -1833,7 +1849,7 @@ Promise.prototype.done = function (onFulfilled, onRejected) {
     })
   })
 }
-},{"./core.js":21,"asap":25}],23:[function(require,module,exports){
+},{"./core.js":22,"asap":26}],24:[function(require,module,exports){
 'use strict';
 
 //This file contains the ES6 extensions to the core Promises/A+ API
@@ -1943,7 +1959,7 @@ Promise.prototype['catch'] = function (onRejected) {
   return this.then(null, onRejected);
 }
 
-},{"./core.js":21,"asap":25}],24:[function(require,module,exports){
+},{"./core.js":22,"asap":26}],25:[function(require,module,exports){
 'use strict';
 
 //This file contains then/promise specific extensions that are only useful for node.js interop
@@ -2008,7 +2024,7 @@ Promise.prototype.nodeify = function (callback, ctx) {
   })
 }
 
-},{"./core.js":21,"asap":25}],25:[function(require,module,exports){
+},{"./core.js":22,"asap":26}],26:[function(require,module,exports){
 (function (process){
 
 // Use the fastest possible means to execute a task in a future turn
@@ -2125,7 +2141,7 @@ module.exports = asap;
 
 
 }).call(this,require('_process'))
-},{"_process":10}],26:[function(require,module,exports){
+},{"_process":11}],27:[function(require,module,exports){
 module.exports = reemit
 module.exports.filter = filter
 
@@ -2149,7 +2165,7 @@ function filter (source, events) {
   return emitter
 }
 
-},{"events":9}],27:[function(require,module,exports){
+},{"events":10}],28:[function(require,module,exports){
 function E () {
 	// Keep this empty so it's easier to inherit from
   // (via https://github.com/lipsmack from https://github.com/scottcorgan/tiny-emitter/issues/3)
@@ -2215,4 +2231,4 @@ E.prototype = {
 
 module.exports = E;
 
-},{}]},{},[4]);
+},{}]},{},[5]);

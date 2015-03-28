@@ -60,10 +60,25 @@ module.exports = function(api, ticsta, credentials) {
 },{}],2:[function(require,module,exports){
 module.exports = {
   account: require('./account.js'),
-  websites: require('./websites.js')
+  websites: require('./websites.js'),
+  nodes: require('./nodes.js')
 };
 
-},{"./account.js":1,"./websites.js":3}],3:[function(require,module,exports){
+},{"./account.js":1,"./nodes.js":3,"./websites.js":4}],3:[function(require,module,exports){
+module.exports = function(api, ticsta) {
+
+  var nodes = api.endpoint('nodes', {
+
+    // GET /nodes/active
+    active: function(callback) {
+      return this.http.request(this.url() + '/active', 'GET', callback);
+    }
+  });
+
+  return nodes;
+};
+
+},{}],4:[function(require,module,exports){
 module.exports = function(api, ticsta) {
   //var user = require('./user')(api);
 
@@ -137,40 +152,42 @@ module.exports = function(api, ticsta) {
   return websites;
 };
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 angular.module('ticsta', [])
-  .provider('ticsta', function () {
+  .provider('ticsta', function() {
     var Ticsta = require('../ticsta');
     var Http = require('narrator').Http;
     var asQ = require('narrator/lib/browser/asQ');
     var asHttp = require('narrator/lib/browser/asHttp');
-    
+
     return {
       _options: {},
-      
-      configure: function (options) {
+
+      configure: function(options) {
         this._options = options;
       },
-      
-      $get: function ($rootScope, $q, $http) {
+
+      $get: ['$rootScope', '$q', '$http', function($rootScope, $q, $http) {
         $rootScope.narratorApply = function(fn) {
           var phase = this.$root.$$phase;
-          if(phase === '$apply' || phase === '$digest') {
-            if(fn && (typeof(fn) === 'function')) {
+          if (phase === '$apply' || phase === '$digest') {
+            if (fn && (typeof(fn) === 'function')) {
               fn();
             }
           } else {
             this.$apply(fn);
           }
         };
-        
+
         asQ(Http, $rootScope, $q);
         asHttp(Http, $http);
+
         return Ticsta.createClient(this._options);
-      }
+      }]
     };
   });
-},{"../ticsta":6,"narrator":18,"narrator/lib/browser/asHttp":12,"narrator/lib/browser/asQ":13}],5:[function(require,module,exports){
+
+},{"../ticsta":7,"narrator":19,"narrator/lib/browser/asHttp":13,"narrator/lib/browser/asQ":14}],6:[function(require,module,exports){
 module.exports = function(options, defaults) {
   options = options || {};
 
@@ -182,7 +199,7 @@ module.exports = function(options, defaults) {
 
   return options;
 };
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 (function (process){
 var Narrator = require('narrator');
 var Emitter = require('tiny-emitter');
@@ -209,15 +226,16 @@ var Ticsta = function (options) {
     var version = process.env.TICSTA_API_VERSION || options.version || TICSTA_API_VERSION;
     apiOptions.headers['Accept-Version'] = version;
   }
+  
+  this._api = new Narrator(apiOptions);
 
   if (options.token) {
     this.setToken(options.token);
   }
-  
-  this._api = new Narrator(apiOptions);
 
   this.account = api.account(this._api, this, options);
   this.websites = api.websites(this._api, this);
+  this.nodes = api.nodes(this._api, this);
   
   // Forward Narrator events
   reemitter(this._api, this.events, ['response', 'response:success', 'response:error']);
@@ -238,7 +256,7 @@ Ticsta.prototype.setKey = function (key) {
 
 module.exports = Ticsta;
 }).call(this,require('_process'))
-},{"./api":2,"./helpers/defaults":5,"_process":11,"amp-extend":7,"narrator":18,"re-emitter":21,"tiny-emitter":22}],7:[function(require,module,exports){
+},{"./api":2,"./helpers/defaults":6,"_process":12,"amp-extend":8,"narrator":19,"re-emitter":22,"tiny-emitter":23}],8:[function(require,module,exports){
 var isObject = require('amp-is-object');
 
 
@@ -254,15 +272,15 @@ module.exports = function(obj) {
     return obj;
 };
 
-},{"amp-is-object":8}],8:[function(require,module,exports){
+},{"amp-is-object":9}],9:[function(require,module,exports){
 module.exports = function isObject(obj) {
     var type = typeof obj;
     return !!obj && (type === 'function' || type === 'object');
 };
 
-},{}],9:[function(require,module,exports){
-
 },{}],10:[function(require,module,exports){
+
+},{}],11:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -565,7 +583,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -625,7 +643,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 module.exports = function (Http, $http) {
   Http.prototype._request = function (options, callback) {
     options.data = options.data || options.form;
@@ -642,7 +660,7 @@ module.exports = function (Http, $http) {
       });
   };
 };
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 module.exports = function (Http, $rootScope, $q) {
   Http.prototype._promiseWrap = function (callback) {
     var d = $q.defer();
@@ -660,7 +678,7 @@ module.exports = function (Http, $rootScope, $q) {
     return d.promise;
   };
 };
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var defaults = require('./helpers/defaults');
 var extend = require('extend');
 var urljoin = require('url-join');
@@ -753,7 +771,7 @@ Endpoint.prototype.getEndpoint = function (path, id) {
   return this.options._endpoints[pathKey];
 };
 
-},{"./entity":15,"./helpers/defaults":16,"./http":17,"extend":19,"url-join":20}],15:[function(require,module,exports){
+},{"./entity":16,"./helpers/defaults":17,"./http":18,"extend":20,"url-join":21}],16:[function(require,module,exports){
 var Http = require('./http');
 var urljoin = require('url-join');
 var defaults = require('./helpers/defaults');
@@ -836,9 +854,9 @@ Entity.prototype.getEndpoint = function (path, id) {
   return this.options._endpoints[pathKey];
 };
 
-},{"./helpers/defaults":16,"./http":17,"./narrator":18,"extend":19,"url-join":20}],16:[function(require,module,exports){
-arguments[4][5][0].apply(exports,arguments)
-},{"dup":5}],17:[function(require,module,exports){
+},{"./helpers/defaults":17,"./http":18,"./narrator":19,"extend":20,"url-join":21}],17:[function(require,module,exports){
+arguments[4][6][0].apply(exports,arguments)
+},{"dup":6}],18:[function(require,module,exports){
 (function (process){
 var extend = require('extend');
 var defaults = require('./helpers/defaults');
@@ -978,7 +996,7 @@ Http.prototype.request = function (path, method, options, callback) {
   });
 };
 }).call(this,require('_process'))
-},{"./helpers/defaults":16,"_process":11,"extend":19,"promise":9,"request":9}],18:[function(require,module,exports){
+},{"./helpers/defaults":17,"_process":12,"extend":20,"promise":10,"request":10}],19:[function(require,module,exports){
 var extend = require('extend');
 var urljoin = require('url-join');
 var Promise = require('promise');
@@ -1034,7 +1052,7 @@ Narrator.prototype.xhr = function (key, value) {
   this._xhr[key] = value;
   return this;
 };
-},{"./endpoint":14,"./http":17,"extend":19,"promise":9,"tiny-emitter":22,"url-join":20}],19:[function(require,module,exports){
+},{"./endpoint":15,"./http":18,"extend":20,"promise":10,"tiny-emitter":23,"url-join":21}],20:[function(require,module,exports){
 var hasOwn = Object.prototype.hasOwnProperty;
 var toString = Object.prototype.toString;
 var undefined;
@@ -1117,7 +1135,7 @@ module.exports = function extend() {
 };
 
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 function normalize (str) {
   return str
           .replace(/[\/]+/g, '/')
@@ -1130,7 +1148,7 @@ module.exports = function () {
   var joined = [].slice.call(arguments, 0).join('/');
   return normalize(joined);
 };
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = reemit
 module.exports.filter = filter
 
@@ -1154,7 +1172,7 @@ function filter (source, events) {
   return emitter
 }
 
-},{"events":10}],22:[function(require,module,exports){
+},{"events":11}],23:[function(require,module,exports){
 function E () {
 	// Keep this empty so it's easier to inherit from
   // (via https://github.com/lipsmack from https://github.com/scottcorgan/tiny-emitter/issues/3)
@@ -1220,4 +1238,4 @@ E.prototype = {
 
 module.exports = E;
 
-},{}]},{},[4]);
+},{}]},{},[5]);
