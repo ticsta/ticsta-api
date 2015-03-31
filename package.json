@@ -38,9 +38,9 @@
     "btoa": "1.1.x",
     "form-data": "^0.2.0",
     "lodash.defaults": "^2.4.1",
-    "narrator": "~1.1.0",
     "promise": "^6.1.0",
     "re-emitter": "^1.0.0",
-    "tiny-emitter": "^1.0.0"
+    "tiny-emitter": "^1.0.0",
+    "narrator": "^1.1.2"
   }
 }
