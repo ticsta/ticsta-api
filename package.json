@@ -40,7 +40,6 @@
     "lodash.defaults": "^2.4.1",
     "promise": "^6.1.0",
     "re-emitter": "^1.0.0",
-    "tiny-emitter": "^1.0.0",
-    "narrator": "^1.1.2"
+    "tiny-emitter": "^1.0.0"
   }
 }
