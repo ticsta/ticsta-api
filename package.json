@@ -1,6 +1,6 @@
 {
   "name": "ticsta-api",
-  "version": "0.0.3",
+  "version": "0.1.2",
   "description": "Wrapper for the Ticsta API",
   "main": "lib/ticsta.js",
   "scripts": {
@@ -40,6 +40,7 @@
     "lodash.defaults": "^2.4.1",
     "promise": "^6.1.0",
     "re-emitter": "^1.0.0",
-    "tiny-emitter": "^1.0.0"
+    "tiny-emitter": "^1.0.0",
+    "narrator2": "^1.1.3"
   }
 }
