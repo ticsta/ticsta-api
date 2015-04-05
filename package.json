@@ -1,6 +1,6 @@
 {
   "name": "ticsta-api",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Wrapper for the Ticsta API",
   "main": "lib/ticsta.js",
   "scripts": {
@@ -41,6 +41,7 @@
     "promise": "^6.1.0",
     "re-emitter": "^1.0.0",
     "tiny-emitter": "^1.0.0",
+    "active-memory": "0.0.2",
     "narrator2": "^1.1.3"
   }
 }
