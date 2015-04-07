@@ -1,6 +1,6 @@
 {
   "name": "ticsta-api",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Wrapper for the Ticsta API",
   "main": "lib/ticsta.js",
   "scripts": {
